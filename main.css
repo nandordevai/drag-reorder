@@ -1,0 +1,44 @@
+body {
+    font-family: 'Helvetica Neue', sans-serif;
+}
+
+.orderable {
+    -webkit-user-select: none;
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    padding-left: 0;
+    user-select: none;
+}
+
+.orderable__item {
+    background: rgb(240, 240, 240);
+    border: 1px solid rgb(150, 150, 255);
+    box-sizing: border-box;
+    color: black;
+    display: block;
+    height: 72px;
+    margin: 12px;
+    min-width: 72px;
+    padding: 3px;
+    text-align: center;
+    width: 72px;
+}
+
+.insertion-marker {
+    background: rgb(150, 150, 255);
+    border-radius: 2px;
+    border: none;
+    box-sizing: border-box;
+    height: 72px;
+    margin: 0 -3px;
+    min-width: 1px;
+    position: relative;
+    width: 6px;
+    z-index: 999999;
+}
+
+.selected {
+    background: rgb(150, 150, 255);
+    color: white;
+}
