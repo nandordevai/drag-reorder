@@ -25,7 +25,7 @@ body {
     width: 72px;
 }
 
-.insertion-marker {
+.orderable__insertion-marker {
     background: rgb(150, 150, 255);
     border-radius: 2px;
     border: none;

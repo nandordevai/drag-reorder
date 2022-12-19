@@ -1,11 +1,13 @@
-const INTENT_BEFORE = Symbol();
-const INTENT_AFTER = Symbol();
+const INTENT_BEFORE = Symbol('INTENT_BEFORE');
+const INTENT_AFTER = Symbol('INTENT_AFTER');
 const DIRECTION_HORIZONTAL = Symbol();
 const DIRECTION_VERTICAL = Symbol();
 
 export class Orderable {
-    constructor(element) {
-        this.element = element;
+    constructor(className, callback) {
+        this.className = className;
+        this.element = document.querySelector(`.${this.className}`);
+        this.dropCallback = callback;
         this.addEventHandlers();
     }
 
@@ -56,14 +58,7 @@ export class Orderable {
         let closest = el;
         let intent = INTENT_AFTER;
         let marker = document.createElement(el.nodeName);
-        marker.classList.add('insertion-marker');
-
-        const unstyle = () => {
-            orderables.forEach(({ element }) => {
-                element.classList.remove('reorder-accepts-before');
-                element.classList.remove('reorder-accepts-after');
-            });
-        };
+        marker.classList.add(`${this.className}__insertion-marker`);
 
         const mouseMoveHandler = evt => {
             evt.preventDefault();
@@ -82,54 +77,51 @@ export class Orderable {
 
             closest = byDistance[0].element;
             intent = this.intentFrom(direction, evt, byDistance[0].centroid);
-
-            unstyle();
             marker.remove();
-
             byDistance.forEach(({ element }) => {
                 if (element !== closest) return;
                 if (intent === INTENT_BEFORE) {
                     marker = element.insertAdjacentElement('beforebegin', marker);
-                    element.classList.add('reorder-accepts-before');
                 } else {
                     marker = element.insertAdjacentElement('afterend', marker);
-                    element.classList.add('reorder-accepts-after');
                 }
             });
         };
         parent.addEventListener('dragover', mouseMoveHandler);
 
-        const stopFn = () => {
-            unstyle();
+        return () => {
             marker.remove();
             parent.removeEventListener('dragover', mouseMoveHandler);
             return { closest, intent };
         };
+    }
 
-        return stopFn;
+    onDragStart(item) {
+        item.classList.add(`${this.className}__selected`);
+        const stop = this.startReorderWithElement(item);
+        item.parentNode.addEventListener('drop', e => {
+            e.preventDefault();
+        }, {
+            once: true,
+        });
+        item.addEventListener('dragend', (e) => {
+            e.preventDefault();
+            item.classList.remove(`${this.className}__selected`);
+            const { closest, intent } = stop();
+            if (intent === INTENT_BEFORE) {
+                closest.insertAdjacentElement('beforebegin', item);
+            } else {
+                closest.insertAdjacentElement('afterend', item);
+            }
+            this.dropCallback(item, closest, intent);
+        },
+        { once: true }
+        );
     }
 
     addEventHandlers() {
         Array.from(this.element.children).forEach(item => {
-            item.addEventListener('dragstart', () => {
-                item.classList.add('selected');
-                const stop = this.startReorderWithElement(item);
-                item.parentNode.addEventListener('drop', e => { e.preventDefault(); }, {
-                    once: true,
-                });
-                item.addEventListener('dragend', (e) => {
-                    e.preventDefault();
-                    item.classList.remove('selected');
-                    const { closest, intent } = stop();
-                    if (intent === INTENT_BEFORE) {
-                        closest.insertAdjacentElement('beforebegin', item);
-                    } else {
-                        closest.insertAdjacentElement('afterend', item);
-                    }
-                },
-                { once: true }
-                );
-            });
+            item.addEventListener('dragstart', () => { this.onDragStart(item); });
         });
     }
 }
