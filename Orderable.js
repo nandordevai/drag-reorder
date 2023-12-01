@@ -1,18 +1,17 @@
-const INTENT_BEFORE = Symbol('INTENT_BEFORE');
-const INTENT_AFTER = Symbol('INTENT_AFTER');
+const INTENT_BEFORE = Symbol();
+const INTENT_AFTER = Symbol();
 const DIRECTION_HORIZONTAL = Symbol();
 const DIRECTION_VERTICAL = Symbol();
 
 export class Orderable {
-    constructor(className, callback) {
+    constructor(className, startCallback, dropCallback) {
         this.className = className;
         this.element = document.querySelector(`.${this.className}`);
-        this.dropCallback = callback;
+        this.startCallback = startCallback;
+        this.dropCallback = dropCallback;
         this.addEventHandlers();
     }
 
-    // Compute the centroid of an element in page coordinates
-    // (from the top-left of the page, accounting for the scroll).
     computeCentroid(element) {
         const rect = element.getBoundingClientRect();
         const viewportX = (rect.left + rect.right) / 2;
@@ -20,10 +19,10 @@ export class Orderable {
         return { x: viewportX + window.scrollX, y: viewportY + window.scrollY };
     }
 
-    distanceBetweenCursorAndPoint(evt, centroid) {
+    distance(p1, p2) {
         return Math.hypot(
-            centroid.x - evt.clientX - window.scrollX,
-            centroid.y - evt.clientY - window.scrollY
+            p2.x - p1.x - window.scrollX,
+            p2.y - p1.y - window.scrollY
         );
     }
 
@@ -34,49 +33,47 @@ export class Orderable {
         return dx > dy ? DIRECTION_HORIZONTAL : DIRECTION_VERTICAL;
     }
 
-    intentFrom(direction, evt, centroid) {
+    intentFrom(direction, event, centroid) {
         if (direction === DIRECTION_HORIZONTAL) {
-            return evt.clientX + window.scrollX < centroid.x
+            return event.clientX + window.scrollX < centroid.x
                 ? INTENT_BEFORE
                 : INTENT_AFTER;
         } else {
-            return evt.clientY + window.scrollY < centroid.y
+            return event.clientY + window.scrollY < centroid.y
                 ? INTENT_BEFORE
                 : INTENT_AFTER;
         }
     }
 
-    startReorderWithElement(el) {
-        const parent = el.parentNode;
-        const orderables = Array.from(parent.children).map((element, i) => {
+    startReorder(element) {
+        const parent = element.parentNode;
+        const items = Array.from(parent.children).map((element, i) => {
             return { i, element, centroid: this.computeCentroid(element) };
         });
 
-        // Determine the dominant direction in the list - is it horizontal or vertical?
-        const direction = this.predictDirection(orderables[0], orderables[1]);
+        const direction = this.predictDirection(items[0], items[1]);
 
-        let closest = el;
+        let closest = element;
         let intent = INTENT_AFTER;
-        let marker = document.createElement(el.nodeName);
+        let marker = document.createElement(element.nodeName);
         marker.classList.add(`${this.className}__insertion-marker`);
 
-        const mouseMoveHandler = evt => {
-            evt.preventDefault();
+        const onMouseMove = e => {
+            e.preventDefault();
 
-            const byDistance = orderables
-                .map(orderable => {
+            const byDistance = items
+                .map(item => {
                     return {
-                        distance: this.distanceBetweenCursorAndPoint(
-                            evt,
-                            orderable.centroid
+                        distance: this.distance(
+                            { x: e.clientX, y: e.clientY }, item.centroid
                         ),
-                        ...orderable,
+                        ...item,
                     };
                 })
                 .sort((a, b) => a.distance - b.distance);
 
             closest = byDistance[0].element;
-            intent = this.intentFrom(direction, evt, byDistance[0].centroid);
+            intent = this.intentFrom(direction, e, byDistance[0].centroid);
             marker.remove();
             byDistance.forEach(({ element }) => {
                 if (element !== closest) return;
@@ -87,41 +84,41 @@ export class Orderable {
                 }
             });
         };
-        parent.addEventListener('dragover', mouseMoveHandler);
+        parent.addEventListener('dragover', onMouseMove);
 
         return () => {
             marker.remove();
-            parent.removeEventListener('dragover', mouseMoveHandler);
+            parent.removeEventListener('dragover', onMouseMove);
             return { closest, intent };
         };
     }
 
-    onDragStart(item) {
-        item.classList.add(`${this.className}__selected`);
-        const stop = this.startReorderWithElement(item);
-        item.parentNode.addEventListener('drop', e => {
-            e.preventDefault();
+    onDragStart(element) {
+        this.startCallback(element);
+        const stop = this.startReorder(element);
+        element.parentNode.addEventListener('drop', event => {
+            event.preventDefault();
         }, {
             once: true,
         });
-        item.addEventListener('dragend', (e) => {
-            e.preventDefault();
-            item.classList.remove(`${this.className}__selected`);
+        element.addEventListener('dragend', (event) => {
+            event.preventDefault();
+            element.classList.remove(`${this.className}__selected`);
             const { closest, intent } = stop();
             if (intent === INTENT_BEFORE) {
-                closest.insertAdjacentElement('beforebegin', item);
+                closest.insertAdjacentElement('beforebegin', element);
             } else {
-                closest.insertAdjacentElement('afterend', item);
+                closest.insertAdjacentElement('afterend', element);
             }
-            this.dropCallback(item, closest, intent);
-        },
-        { once: true }
-        );
+            this.dropCallback(element, closest, intent);
+        }, {
+            once: true
+        });
     }
 
     addEventHandlers() {
-        Array.from(this.element.children).forEach(item => {
-            item.addEventListener('dragstart', () => { this.onDragStart(item); });
+        Array.from(this.element.children).forEach(element => {
+            element.addEventListener('dragstart', () => { this.onDragStart(element); });
         });
     }
 }

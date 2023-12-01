@@ -1,3 +1,7 @@
+:root {
+    --accent-color: hsl(240 60% 80%)
+}
+
 body {
     font-family: 'Helvetica Neue', sans-serif;
 }
@@ -12,8 +16,8 @@ body {
 }
 
 .orderable__item {
-    background: rgb(240, 240, 240);
-    border: 1px solid rgb(150, 150, 255);
+    background: hsl(0 0% 95%);
+    border: 1px solid var(--accent-color);
     box-sizing: border-box;
     color: black;
     display: block;
@@ -26,7 +30,7 @@ body {
 }
 
 .orderable__insertion-marker {
-    background: rgb(150, 150, 255);
+    background: var(--accent-color);
     border-radius: 2px;
     border: none;
     box-sizing: border-box;
@@ -35,10 +39,9 @@ body {
     min-width: 1px;
     position: relative;
     width: 6px;
-    z-index: 999999;
 }
 
-.selected {
-    background: rgb(150, 150, 255);
+.orderable__selected {
+    background: var(--accent-color);
     color: white;
 }
