@@ -15,7 +15,7 @@
 </div>
 
 <script>
-    Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).forEach((letter) => {
+    Array.from({ length: 26 }, (_, i) => String.fromCharCode(97 + i)).forEach((letter) => {
         const div = document.createElement('div');
         div.classList.add('orderable__item');
         div.setAttribute('draggable', 'true');

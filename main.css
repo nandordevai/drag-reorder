@@ -16,16 +16,19 @@ body {
 }
 
 .orderable__item {
+    align-content: end;
     background: hsl(0 0% 95%);
     border: 1px solid var(--accent-color);
     box-sizing: border-box;
     color: black;
-    display: block;
+    display: grid;
+    font-size: 2rem;
     height: 72px;
+    justify-content: start;
     margin: 12px;
     min-width: 72px;
     padding: 3px;
-    text-align: center;
+    padding-left: 9px;
     width: 72px;
 }
 
