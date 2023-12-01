@@ -1,5 +1,5 @@
-const INTENT_BEFORE = Symbol();
-const INTENT_AFTER = Symbol();
+const INTENT_BEFORE = Symbol('INTENT_BEFORE');
+const INTENT_AFTER = Symbol('INTENT_AFTER');
 const DIRECTION_HORIZONTAL = Symbol();
 const DIRECTION_VERTICAL = Symbol();
 

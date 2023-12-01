@@ -6,6 +6,6 @@ const orderable = new Orderable(
         el.classList.add('orderable__selected');
     },
     (el, closest, intent) => {
-        console.log(el, closest, intent.description);
+        console.log(`${el.textContent} ${intent.description} ${closest.textContent}`);
     }
 );
