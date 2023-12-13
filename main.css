@@ -1,5 +1,5 @@
 :root {
-    --accent-color: hsl(240 60% 80%)
+    --accent-color: oklch(75% .1 280);
 }
 
 body {
@@ -17,7 +17,7 @@ body {
 
 .orderable__item {
     align-content: end;
-    background: hsl(0 0% 95%);
+    background: oklch(95% 0 0);
     border: 1px solid var(--accent-color);
     box-sizing: border-box;
     color: black;
