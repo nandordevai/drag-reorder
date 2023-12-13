@@ -48,7 +48,7 @@ export class Orderable {
     startReorder(element) {
         const parent = element.parentNode;
         const items = Array.from(parent.children).map((element, i) => {
-            return { i, element, centroid: this.computeCentroid(element) };
+            return { element, centroid: this.computeCentroid(element) };
         });
 
         const direction = this.predictDirection(items[0], items[1]);
